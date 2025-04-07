@@ -19,11 +19,25 @@ export async function GET(request: Request) {
     let difficultyContext = '';
     
     if (difficulty === 'easy') {
-      difficultyContext = 'Adegan harus sederhana dengan pilihan jawaban yang jelas.';
+      difficultyContext = 'Adegan harus sederhana dengan pilihan jawaban yang jelas. Buat 1 pertanyaan dan 3 pilihan jawaban.';
     } else if (difficulty === 'medium') {
-      difficultyContext = `Untuk level medium, adegan akan terdiri dari 3 tahap interaksi. Saat ini adalah tahap ke-${step + 1}. Buat percakapan yang lebih rumit.`;
+      difficultyContext = `Untuk level medium, adegan akan terdiri dari 3 tahap interaksi. Saat ini adalah tahap ke-${step + 1} dari 3.
+      
+${step === 0 ? 'Ini adalah awal percakapan. Mulai dengan percakapan ringan.' : ''}
+${step === 1 ? 'Ini adalah pertengahan percakapan. Lanjutkan dari percakapan sebelumnya dengan menambahkan kerumitan.' : ''}
+${step === 2 ? 'Ini adalah akhir percakapan. Buat pertanyaan yang menentukan hasil akhir percakapan.' : ''}
+
+Buat percakapan yang lebih rumit dengan kode halus yang tidak terlalu mudah dipahami.`;
     } else if (difficulty === 'hard') {
-      difficultyContext = `Untuk level hard, adegan akan terdiri dari 5 tahap interaksi. Saat ini adalah tahap ke-${step + 1}. Buat percakapan yang kompleks dengan kode halus yang sulit dipahami.`;
+      difficultyContext = `Untuk level hard, adegan akan terdiri dari 5 tahap interaksi. Saat ini adalah tahap ke-${step + 1} dari 5.
+      
+${step === 0 ? 'Ini adalah awal percakapan. Mulai dengan percakapan ringan.' : ''}
+${step === 1 ? 'Ini adalah tahap kedua percakapan. Lanjutkan dari percakapan awal.' : ''}
+${step === 2 ? 'Ini adalah tahap ketiga percakapan. Tambahkan sedikit ketegangan atau drama.' : ''}
+${step === 3 ? 'Ini adalah tahap keempat percakapan. Tingkatkan kompleksitas.' : ''}
+${step === 4 ? 'Ini adalah akhir percakapan. Buat pertanyaan yang menentukan hasil akhir hubungan.' : ''}
+
+Buat percakapan yang kompleks dengan kode halus yang sulit dipahami.`;
     }
 
     // Prompt template for generating scenes

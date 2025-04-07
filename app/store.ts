@@ -48,14 +48,23 @@ export const useGameStore = create<GameState>()(
       selectChoice: (label) => set((state) => {
         // Check if the choice is correct and increment score if it is
         const isCorrect = state.currentScene?.choices.find(choice => choice.label === label)?.isCorrect || false;
+        const newScore = isCorrect ? state.score + 1 : state.score;
         
-        // For easy mode or final step in medium/hard, immediately set outcome
-        if (state.difficulty === 'easy' || 
-            (state.difficulty === 'medium' && state.currentStep === 2) ||
+        // For easy mode, immediately set outcome
+        if (state.difficulty === 'easy') {
+          return { 
+            selectedChoice: label,
+            score: newScore,
+            conversationOutcome: isCorrect ? 'win' : 'lose'
+          };
+        }
+        
+        // For final step in medium/hard, set outcome
+        if ((state.difficulty === 'medium' && state.currentStep === 2) ||
             (state.difficulty === 'hard' && state.currentStep === 4)) {
           return { 
             selectedChoice: label,
-            score: isCorrect ? state.score + 1 : state.score,
+            score: newScore,
             conversationOutcome: isCorrect ? 'win' : 'lose'
           };
         }
@@ -63,7 +72,7 @@ export const useGameStore = create<GameState>()(
         // For intermediate steps in medium/hard, just track if correct
         return { 
           selectedChoice: label,
-          score: isCorrect ? state.score + 1 : state.score
+          score: newScore
         };
       }),
       
@@ -73,6 +82,7 @@ export const useGameStore = create<GameState>()(
       
       nextScene: () => set((state) => ({
         history: [...state.history, state.currentScene!],
+        currentScene: null,
         selectedChoice: null,
         showExplanation: false,
         currentStep: 0,
@@ -97,6 +107,7 @@ export const useGameStore = create<GameState>()(
         currentStep: state.currentStep + 1,
         selectedChoice: null,
         showExplanation: false,
+        currentScene: null, // Clear the current scene to force fetching a new one
       })),
       
       resetStep: () => set({ 

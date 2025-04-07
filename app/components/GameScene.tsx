@@ -161,7 +161,9 @@ export default function GameSceneComponent({
         </button>
       )}
       
-      {(showExplanation && isFinalStep) || conversationOutcome !== 'pending' ? (
+      {(showExplanation && difficulty === 'easy') || 
+       (showExplanation && isFinalStep) || 
+       conversationOutcome !== 'pending' ? (
         <button
           onClick={onNextScene}
           disabled={loading}

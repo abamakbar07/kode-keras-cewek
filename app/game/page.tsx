@@ -74,6 +74,7 @@ export default function GamePage() {
   // Handle continue conversation button (for medium and hard difficulties)
   const handleContinueConversation = () => {
     advanceStep();
+    fetchNewScene();
   };
 
   return (
