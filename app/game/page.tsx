@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useGameStore } from '../store';
 import GameSceneComponent from '../components/GameScene';
-import { GameScene } from '../types';
+import { GameScene, Difficulty, DIFFICULTY_CONFIGS } from '../types';
 
 export default function GamePage() {
   const { 
@@ -13,14 +13,21 @@ export default function GamePage() {
     showExplanation,
     score,
     loading,
+    difficulty,
+    currentStep,
+    conversationOutcome,
     setCurrentScene,
     selectChoice,
     showSceneExplanation,
     nextScene,
-    setLoading
+    setLoading,
+    setDifficulty,
+    advanceStep,
+    resetStep
   } = useGameStore();
   
   const [error, setError] = useState<string | null>(null);
+  const [showDifficultyModal, setShowDifficultyModal] = useState(!currentScene);
 
   // Function to fetch a new scene
   const fetchNewScene = async () => {
@@ -28,7 +35,7 @@ export default function GamePage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/scene');
+      const response = await fetch(`/api/scene?difficulty=${difficulty}&step=${currentStep}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch scene');
@@ -44,17 +51,29 @@ export default function GamePage() {
     }
   };
 
-  // On initial load, fetch the first scene
+  // On initial load, check difficulty settings
   useEffect(() => {
-    if (!currentScene) {
+    if (!showDifficultyModal && !currentScene) {
       fetchNewScene();
     }
-  }, []);
+  }, [showDifficultyModal]);
+
+  // Handle difficulty selection
+  const handleSelectDifficulty = (selected: Difficulty) => {
+    setDifficulty(selected);
+    resetStep();
+    setShowDifficultyModal(false);
+  };
 
   // Handle next scene button
   const handleNextScene = () => {
     nextScene();
     fetchNewScene();
+  };
+
+  // Handle continue conversation button (for medium and hard difficulties)
+  const handleContinueConversation = () => {
+    advanceStep();
   };
 
   return (
@@ -68,10 +87,57 @@ export default function GamePage() {
             ← Kembali ke Home
           </Link>
           
-          <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow">
-            <span className="font-medium">Score: {score}</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowDifficultyModal(true)}
+              className="px-3 py-1 text-sm bg-white dark:bg-gray-700 rounded-full border border-pink-300 dark:border-pink-700 hover:bg-pink-50 dark:hover:bg-gray-600"
+            >
+              Level: {DIFFICULTY_CONFIGS[difficulty].name}
+            </button>
+            
+            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow">
+              <span className="font-medium">Score: {score}</span>
+            </div>
           </div>
         </div>
+        
+        {/* Difficulty Selection Modal */}
+        {showDifficultyModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full">
+              <h2 className="text-2xl font-bold text-pink-600 dark:text-pink-400 mb-4">Pilih Level Kesulitan</h2>
+              
+              <div className="space-y-4 mb-6">
+                {(Object.keys(DIFFICULTY_CONFIGS) as Difficulty[]).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => handleSelectDifficulty(level)}
+                    className="w-full p-4 text-left rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-pink-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">{DIFFICULTY_CONFIGS[level].name}</span>
+                      {level === difficulty && (
+                        <span className="text-pink-500">✓</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {DIFFICULTY_CONFIGS[level].description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              
+              {currentScene && (
+                <button
+                  onClick={() => setShowDifficultyModal(false)}
+                  className="w-full py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Batal
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         
         {error ? (
           <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-lg mb-4">
@@ -96,7 +162,11 @@ export default function GamePage() {
             onSelectChoice={selectChoice}
             onShowExplanation={showSceneExplanation}
             onNextScene={handleNextScene}
+            onContinueConversation={handleContinueConversation}
             loading={loading}
+            difficulty={difficulty}
+            currentStep={currentStep}
+            conversationOutcome={conversationOutcome}
           />
         ) : null}
       </div>

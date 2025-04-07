@@ -8,6 +8,10 @@ Game simulasi visual novel berbasis Next.js yang mengajak pemain untuk memahami 
 - 🎭 **Game Page**: Adegan interaktif berupa percakapan dengan 3 pilihan jawaban.
 - 📝 **History**: Riwayat adegan yang telah dimainkan.
 - 🤖 **AI Integration**: Terintegrasi dengan Google Gemini API untuk menghasilkan adegan yang berbeda-beda.
+- 🔄 **Tingkat Kesulitan**:
+  - **Easy**: Satu pilihan jawaban per conversation
+  - **Medium**: Tiga pilihan jawaban berturut-turut dalam satu conversation
+  - **Hard**: Lima pilihan jawaban berturut-turut dalam satu conversation
 
 ## 🛠️ Tech Stack
 
@@ -45,6 +49,14 @@ Game simulasi visual novel berbasis Next.js yang mengajak pemain untuk memahami 
    npm run dev
    ```
    Akses aplikasi di http://localhost:3000
+
+## 🎲 Cara Bermain
+
+1. Pilih level kesulitan (Easy, Medium, atau Hard)
+2. Baca dialog dari karakter cewek yang berisi "kode keras"
+3. Pilih jawaban terbaik dari 3 pilihan
+4. Untuk level Medium dan Hard, percakapan akan berlanjut beberapa langkah
+5. Di akhir percakapan, kamu akan mendapat hasil (menang/kalah) berdasarkan pilihan
 
 ## 🚀 Deployment
 

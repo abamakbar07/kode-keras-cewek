@@ -1,18 +1,37 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
+import { Difficulty } from '@/app/types';
 
 // Initialize Google Generative AI with your API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Get the URL parameters
+    const { searchParams } = new URL(request.url);
+    const difficulty = searchParams.get('difficulty') as Difficulty || 'easy';
+    const step = parseInt(searchParams.get('step') || '0');
+    
     // Get the generative model (Gemini)
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    // Construct the prompt based on difficulty and step
+    let difficultyContext = '';
+    
+    if (difficulty === 'easy') {
+      difficultyContext = 'Adegan harus sederhana dengan pilihan jawaban yang jelas.';
+    } else if (difficulty === 'medium') {
+      difficultyContext = `Untuk level medium, adegan akan terdiri dari 3 tahap interaksi. Saat ini adalah tahap ke-${step + 1}. Buat percakapan yang lebih rumit.`;
+    } else if (difficulty === 'hard') {
+      difficultyContext = `Untuk level hard, adegan akan terdiri dari 5 tahap interaksi. Saat ini adalah tahap ke-${step + 1}. Buat percakapan yang kompleks dengan kode halus yang sulit dipahami.`;
+    }
 
     // Prompt template for generating scenes
     const prompt = `Kamu adalah AI Storyteller yang bertugas membuat adegan interaktif untuk aplikasi simulasi hubungan bernama "Kode Keras Cewek".
 
 Tugasmu adalah menghasilkan skenario obrolan pendek antara seorang cewek dan cowok, dengan gaya bahasa khas Gen-Z Indonesia. Obrolan harus berisi satu "kode halus" dari cewek yang mengandung makna tersembunyi atau ekspektasi tidak langsung, dan 3 pilihan respons dari cowok. Tugas pemain adalah memilih jawaban terbaik untuk menjaga hubungan tetap lancar.
+
+${difficultyContext}
 
 Struktur output:
 {
