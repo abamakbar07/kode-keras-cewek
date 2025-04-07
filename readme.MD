@@ -1,44 +1,69 @@
-🧠 Konteks Aplikasi
-Nama: Kode Keras Cewek Rebuild
-Genre: Visual Novel, Pilihan Ganda, Dating Sim Parodi
-Gaya Bahasa: Gaul, santai, kadang absurd, penuh sindiran halus
-Target Pengguna: Gen-Z (cowok) yang pengin “membaca kode cewek”
-Objektif Pemain: Memilih respon terbaik dari berbagai kode “halus” yang diberikan karakter cewek dalam konteks percakapan
+# Kode Keras Cewek
 
-✅ Prompt Utama untuk Gemini
----
-Kamu adalah AI Storyteller yang bertugas membuat adegan interaktif untuk aplikasi simulasi hubungan bernama “Kode Keras Cewek”.
+Game simulasi visual novel berbasis Next.js yang mengajak pemain untuk memahami "kode keras" cewek. Game ini terintegrasi dengan Google Gemini API untuk menghasilkan adegan interaktif yang dinamis.
 
-Tugasmu adalah menghasilkan skenario obrolan pendek antara seorang cewek dan cowok, dengan gaya bahasa khas Gen-Z Indonesia. Obrolan harus berisi satu "kode halus" dari cewek yang mengandung makna tersembunyi atau ekspektasi tidak langsung, dan 3 pilihan respons dari cowok. Tugas pemain adalah memilih jawaban terbaik untuk menjaga hubungan tetap lancar.
+## 🎮 Fitur Utama
 
-Struktur output:
-{
-  "sceneTitle": "Judul Singkat dari Situasi",
-  "situation": "Deskripsi singkat latar situasi (max 2 kalimat)",
-  "dialogue": [
-    { "character": "Cewek", "text": "..." },
-    { "character": "Cowok", "text": "..." },
-    ...
-  ],
-  "choices": [
-    { "text": "Pilihan A", "label": "A", "isCorrect": false },
-    { "text": "Pilihan B", "label": "B", "isCorrect": true },
-    { "text": "Pilihan C", "label": "C", "isCorrect": false }
-  ],
-  "explanation": "Penjelasan kenapa jawaban yang benar itu benar"
-}
+- 🏠 **Landing Page**: Tampilan awal dengan tombol "Mulai Main".
+- 🎭 **Game Page**: Adegan interaktif berupa percakapan dengan 3 pilihan jawaban.
+- 📝 **History**: Riwayat adegan yang telah dimainkan.
+- 🤖 **AI Integration**: Terintegrasi dengan Google Gemini API untuk menghasilkan adegan yang berbeda-beda.
 
-Ketentuan:
-- Dialog cewek harus menyiratkan maksud tersembunyi (kode keras)
-- Dialog cowok opsional, boleh muncul untuk ngasih konteks
-- Jawaban yang benar harus terasa "bener secara emosi dan sosial", meskipun logikanya aneh
-- Penjelasan dibuat singkat, tapi lucu atau menyentil
+## 🛠️ Tech Stack
 
-Contoh situasi:
-- Cewek tiba-tiba bilang “Serah kamu aja…”
-- Cewek bilang “Kamu kayaknya lupa deh sesuatu hari ini…”
+- **Frontend**: Next.js (App Router), TailwindCSS, React
+- **Backend**: Next.js API Routes
+- **State Management**: Zustand
+- **AI**: Google Generative AI (Gemini)
 
-Gaya penulisan harus ringan, menghibur, dan sesuai dengan budaya digital anak muda Indonesia.
+## 📋 Cara Setup
 
-Tugasmu adalah membuat satu adegan seperti ini setiap kali dipanggil.
----
+1. **Clone repository**
+   ```bash
+   git clone https://github.com/yourusername/kode-keras-cewek.git
+   cd kode-keras-cewek
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Setup environment variables**
+   Buat file `.env.local` dari file contoh:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   Edit `.env.local` dan tambahkan Google AI API key kamu:
+   ```
+   GOOGLE_AI_API_KEY=your-api-key-here
+   ```
+   Dapatkan API key dari [Google AI Studio](https://ai.google.dev/).
+
+4. **Run development server**
+   ```bash
+   npm run dev
+   ```
+   Akses aplikasi di http://localhost:3000
+
+## 🚀 Deployment
+
+Aplikasi ini bisa di-deploy dengan mudah ke Vercel:
+
+1. Push kode ke repository Git
+2. Import project di Vercel
+3. Tambahkan environment variable `GOOGLE_AI_API_KEY`
+4. Deploy!
+
+## 📚 Struktur Folder
+
+- `/app`: Komponen Next.js App Router
+  - `/api`: API routes (termasuk `/api/scene` untuk Gemini)
+  - `/components`: React components
+  - `/game`: Halaman game
+  - `/history`: Halaman riwayat permainan
+- `/public`: Asset statis
+
+## 📝 License
+
+MIT

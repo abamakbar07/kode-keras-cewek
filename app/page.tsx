@@ -13,14 +13,8 @@ export default function Home() {
           Game simulasi untuk pahami kode halus cewek. Pilih jawaban yang tepat dan jadilah pemenang di hatinya! 💕
         </p>
         
-        <div className="w-64 h-64 relative mb-8 rounded-full overflow-hidden border-4 border-pink-400 shadow-lg">
-          <Image
-            src="/placeholder-girl.png"
-            alt="Karakter Cewek"
-            fill
-            className="object-cover"
-            priority
-          />
+        <div className="w-64 h-64 relative mb-8 rounded-full overflow-hidden border-4 border-pink-400 shadow-lg bg-pink-200 flex items-center justify-center">
+          <span className="text-6xl">👧</span>
         </div>
         
         <Link 
@@ -28,6 +22,13 @@ export default function Home() {
           className="px-8 py-4 text-lg font-medium text-white bg-pink-500 rounded-full hover:bg-pink-600 transition-colors shadow-md"
         >
           Mulai Main
+        </Link>
+        
+        <Link 
+          href="/history" 
+          className="mt-4 px-6 py-3 text-sm font-medium text-pink-600 bg-white border border-pink-300 rounded-full hover:bg-pink-50 transition-colors shadow-sm"
+        >
+          Lihat History
         </Link>
         
         <div className="mt-8 text-sm text-gray-600 dark:text-gray-400">
