@@ -1,108 +1,118 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
-import { Difficulty } from '@/app/types';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GameScene, Difficulty } from '@/app/types';
 
-// Initialize Google Generative AI with your API key
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
+const apiKey = process.env.GOOGLE_AI_API_KEY || '';
+const genAI = new GoogleGenerativeAI(apiKey);
 
-export async function GET(request: Request) {
+const generationConfig = {
+  temperature: 1,
+  topP: 0.95,
+  topK: 40,
+  maxOutputTokens: 8192,
+  responseModalities: [],
+  responseMimeType: "text/plain",
+};
+
+export async function POST(request: Request) {
   try {
-    // Get the URL parameters
-    const { searchParams } = new URL(request.url);
-    const difficulty = searchParams.get('difficulty') as Difficulty || 'easy';
-    const step = parseInt(searchParams.get('step') || '0');
-    
-    // Get the generative model (Gemini)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const { difficulty, step = 1 } = await request.json();
 
-    // Construct the prompt based on difficulty and step
-    let difficultyContext = '';
-    
-    if (difficulty === 'easy') {
-      difficultyContext = 'Adegan harus sederhana dengan pilihan jawaban yang jelas. Buat 1 pertanyaan dan 3 pilihan jawaban.';
-    } else if (difficulty === 'medium') {
-      difficultyContext = `Untuk level medium, adegan akan terdiri dari 3 tahap interaksi. Saat ini adalah tahap ke-${step + 1} dari 3.
-      
-${step === 0 ? 'Ini adalah awal percakapan. Mulai dengan percakapan ringan.' : ''}
-${step === 1 ? 'Ini adalah pertengahan percakapan. Lanjutkan dari percakapan sebelumnya dengan menambahkan kerumitan.' : ''}
-${step === 2 ? 'Ini adalah akhir percakapan. Buat pertanyaan yang menentukan hasil akhir percakapan.' : ''}
-
-Buat percakapan yang lebih rumit dengan kode halus yang tidak terlalu mudah dipahami.`;
-    } else if (difficulty === 'hard') {
-      difficultyContext = `Untuk level hard, adegan akan terdiri dari 5 tahap interaksi. Saat ini adalah tahap ke-${step + 1} dari 5.
-      
-${step === 0 ? 'Ini adalah awal percakapan. Mulai dengan percakapan ringan.' : ''}
-${step === 1 ? 'Ini adalah tahap kedua percakapan. Lanjutkan dari percakapan awal.' : ''}
-${step === 2 ? 'Ini adalah tahap ketiga percakapan. Tambahkan sedikit ketegangan atau drama.' : ''}
-${step === 3 ? 'Ini adalah tahap keempat percakapan. Tingkatkan kompleksitas.' : ''}
-${step === 4 ? 'Ini adalah akhir percakapan. Buat pertanyaan yang menentukan hasil akhir hubungan.' : ''}
-
-Buat percakapan yang kompleks dengan kode halus yang sulit dipahami.`;
-    }
-
-    // Prompt template for generating scenes
-    const prompt = `Kamu adalah AI Storyteller yang bertugas membuat adegan interaktif untuk aplikasi simulasi hubungan bernama "Kode Keras Cewek".
-
-Tugasmu adalah menghasilkan skenario obrolan pendek antara seorang cewek dan cowok, dengan gaya bahasa khas Gen-Z Indonesia. Obrolan harus berisi satu "kode halus" dari cewek yang mengandung makna tersembunyi atau ekspektasi tidak langsung, dan 3 pilihan respons dari cowok. Tugas pemain adalah memilih jawaban terbaik untuk menjaga hubungan tetap lancar.
-
-${difficultyContext}
-
-Struktur output:
-{
-  "sceneTitle": "Judul Singkat dari Situasi",
-  "situation": "Deskripsi singkat latar situasi (max 2 kalimat)",
-  "dialogue": [
-    { "character": "Cewek", "text": "..." },
-    { "character": "Cowok", "text": "..." },
-    ...
-  ],
-  "choices": [
-    { "text": "Pilihan A", "label": "A", "isCorrect": false },
-    { "text": "Pilihan B", "label": "B", "isCorrect": true },
-    { "text": "Pilihan C", "label": "C", "isCorrect": false }
-  ],
-  "explanation": "Penjelasan kenapa jawaban yang benar itu benar"
-}
-
-Ketentuan:
-- Dialog cewek harus menyiratkan maksud tersembunyi (kode keras)
-- Dialog cowok opsional, boleh muncul untuk ngasih konteks
-- Jawaban yang benar harus terasa "bener secara emosi dan sosial", meskipun logikanya aneh
-- Penjelasan dibuat singkat, tapi lucu atau menyentil
-
-Contoh situasi:
-- Cewek tiba-tiba bilang "Serah kamu aja…"
-- Cewek bilang "Kamu kayaknya lupa deh sesuatu hari ini…"
-
-Gaya penulisan harus ringan, menghibur, dan sesuai dengan budaya digital anak muda Indonesia.
-
-Hasilkan scene dalam format JSON yang valid, tanpa komentar atau teks tambahan.`;
-
-    // Generate content
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Try to parse the response as JSON
-    try {
-      // Find the JSON part of the response (in case there are additional text/comments)
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : text;
-      const jsonData = JSON.parse(jsonStr);
-      
-      return NextResponse.json(jsonData);
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", parseError);
+    // Validate difficulty
+    if (!Object.values(Difficulty).includes(difficulty)) {
       return NextResponse.json(
-        { error: "Failed to generate a valid scene. Please try again." },
-        { status: 500 }
+        { error: 'Invalid difficulty level' },
+        { status: 400 }
       );
     }
+
+    // Get difficulty-specific context
+    const difficultyContext = getDifficultyContext(difficulty, step);
+
+    const chatSession = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+    }).startChat({
+      generationConfig,
+      history: [],
+    });
+
+    const result = await chatSession.sendMessage(`You are a creative writer creating scenes for a visual novel game called "Kode Keras Cewek". 
+    The game is about a player trying to win the heart of a strong-willed woman through conversations.
+    ${difficultyContext}
+    
+    Format your response as a JSON object with the following structure:
+    {
+      "background": "A detailed description of the scene setting",
+      "dialog": [
+        {
+          "character": "Character name",
+          "text": "What they say"
+        }
+      ],
+      "choices": [
+        {
+          "text": "Player's response option",
+          "isCorrect": true/false
+        }
+      ],
+      "explanation": "Why this choice is correct/incorrect"
+    }`);
+    const candidates = result.response.candidates || [];
+    if (candidates.length === 0) {
+      throw new Error('No response from Google Generative AI');
+    }
+
+    const response = candidates[0].content.parts
+      .map(part => part.inlineData ? JSON.parse(Buffer.from(part.inlineData.data, 'base64').toString()) : null)
+      .filter(Boolean)[0] || {};
+    
+    // Parse the response and ensure it matches our GameScene type
+    const scene: GameScene = {
+      background: response.background,
+      dialog: response.dialog,
+      choices: response.choices,
+      explanation: response.explanation,
+      conversationHistory: [],
+      stepHistory: []
+    };
+
+    return NextResponse.json(scene);
   } catch (error) {
-    console.error("Error generating scene:", error);
+    console.error('Error generating scene:', error);
     return NextResponse.json(
-      { error: "Failed to generate scene. Please check your API configuration." },
+      { error: 'Failed to generate scene' },
       { status: 500 }
     );
+  }
+}
+
+function getDifficultyContext(difficulty: Difficulty, step: number): string {
+  switch (difficulty) {
+    case Difficulty.EASY:
+      return `Create a simple scene with one question and three clear answer choices.
+      The scene should be straightforward with obvious correct and incorrect responses.
+      The correct choice should be clearly the best option for winning the woman's heart.`;
+    
+    case Difficulty.MEDIUM:
+      return `Create a scene that is part of a three-step conversation (currently on step ${step}).
+      ${step === 1 ? 'Start the conversation with an interesting topic or situation.' :
+        step === 2 ? 'Continue the conversation, building on the previous interaction.' :
+        'Conclude the conversation with a meaningful choice.'}
+      The scene should have more nuanced choices where the correct response isn't immediately obvious.
+      Each choice should have subtle implications for the relationship.`;
+    
+    case Difficulty.HARD:
+      return `Create a scene that is part of a five-step conversation (currently on step ${step}).
+      ${step === 1 ? 'Begin with an intriguing situation or topic.' :
+        step === 2 ? 'Develop the conversation with deeper implications.' :
+        step === 3 ? 'Add complexity to the situation.' :
+        step === 4 ? 'Build tension in the conversation.' :
+        'Conclude with a critical choice that determines the outcome.'}
+      The scene should have complex choices with multiple layers of meaning.
+      The correct choice should require understanding of subtle social cues and emotional intelligence.
+      Each choice should have significant implications for the relationship.`;
+    
+    default:
+      return '';
   }
 } 

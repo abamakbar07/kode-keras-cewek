@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { GameScene, Difficulty } from './types';
+import { GameScene, Difficulty, DialogLine, Choice, StepHistory } from './types';
+
+type ConversationOutcome = 'win' | 'lose' | null;
 
 interface GameState {
   currentScene: GameScene | null;
@@ -11,10 +13,10 @@ interface GameState {
   loading: boolean;
   difficulty: Difficulty;
   currentStep: number;
-  conversationOutcome: 'pending' | 'win' | 'lose';
+  conversationOutcome: ConversationOutcome;
   
   setCurrentScene: (scene: GameScene) => void;
-  selectChoice: (label: string) => void;
+  selectChoice: (choice: Choice) => void;
   showSceneExplanation: () => void;
   hideSceneExplanation: () => void;
   nextScene: () => void;
@@ -23,99 +25,179 @@ interface GameState {
   setDifficulty: (difficulty: Difficulty) => void;
   advanceStep: () => void;
   resetStep: () => void;
-  setConversationOutcome: (outcome: 'pending' | 'win' | 'lose') => void;
+  setConversationOutcome: (outcome: ConversationOutcome) => void;
+  updateCurrentScene: (updates: Partial<GameScene>) => void;
+  fetchNewScene: () => void;
 }
 
-export const useGameStore = create<GameState>()(
+interface GameStore extends Omit<GameState, 'conversationOutcome'> {
+  conversationOutcome: ConversationOutcome;
+  setCurrentScene: (scene: GameScene) => void;
+  selectChoice: (choice: Choice) => Promise<void>;
+  showSceneExplanation: () => void;
+  hideSceneExplanation: () => void;
+  nextScene: () => Promise<void>;
+  setLoading: (loading: boolean) => void;
+  resetGame: () => void;
+  setDifficulty: (difficulty: Difficulty) => void;
+  advanceStep: () => Promise<void>;
+  resetStep: () => void;
+  setConversationOutcome: (outcome: ConversationOutcome) => void;
+  updateCurrentScene: (updates: Partial<GameScene>) => void;
+  fetchNewScene: () => Promise<void>;
+}
+
+export const useGameStore = create<GameStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentScene: null,
       history: [],
       selectedChoice: null,
       showExplanation: false,
       score: 0,
       loading: false,
-      difficulty: 'easy',
-      currentStep: 0,
-      conversationOutcome: 'pending',
+      difficulty: Difficulty.EASY,
+      currentStep: 1,
+      conversationOutcome: null,
       
-      setCurrentScene: (scene) => set({ 
-        currentScene: scene, 
-        selectedChoice: null, 
-        showExplanation: false 
-      }),
+      setCurrentScene: (scene: GameScene) => set({ currentScene: scene }),
       
-      selectChoice: (label) => set((state) => {
-        // Check if the choice is correct and increment score if it is
-        const isCorrect = state.currentScene?.choices.find(choice => choice.label === label)?.isCorrect || false;
-        const newScore = isCorrect ? state.score + 1 : state.score;
-        
-        // For easy mode, immediately set outcome
-        if (state.difficulty === 'easy') {
-          return { 
-            selectedChoice: label,
-            score: newScore,
-            conversationOutcome: isCorrect ? 'win' : 'lose'
-          };
+      selectChoice: async (choice: Choice) => {
+        const { currentScene, difficulty, currentStep } = get();
+        if (!currentScene) return;
+
+        set({ selectedChoice: choice, showExplanation: true });
+
+        // Update score if choice is correct
+        if (choice.isCorrect) {
+          set(state => ({ score: state.score + 1 }));
         }
-        
-        // For final step in medium/hard, set outcome
-        if ((state.difficulty === 'medium' && state.currentStep === 2) ||
-            (state.difficulty === 'hard' && state.currentStep === 4)) {
-          return { 
-            selectedChoice: label,
-            score: newScore,
-            conversationOutcome: isCorrect ? 'win' : 'lose'
-          };
+
+        // For Easy mode, show outcome immediately
+        if (difficulty === Difficulty.EASY) {
+          set({ conversationOutcome: choice.isCorrect ? 'win' : 'lose' });
+          return;
         }
+
+        // For Medium and Hard, only show outcome at final step
+        const isFinalStep = (difficulty === Difficulty.MEDIUM && currentStep === 3) ||
+                           (difficulty === Difficulty.HARD && currentStep === 5);
         
-        // For intermediate steps in medium/hard, just track if correct
-        return { 
-          selectedChoice: label,
-          score: newScore
-        };
-      }),
+        if (isFinalStep) {
+          set({ conversationOutcome: choice.isCorrect ? 'win' : 'lose' });
+        }
+      },
       
       showSceneExplanation: () => set({ showExplanation: true }),
       
       hideSceneExplanation: () => set({ showExplanation: false }),
       
-      nextScene: () => set((state) => ({
-        history: [...state.history, state.currentScene!],
+      nextScene: async () => {
+        const { currentScene, history, difficulty, currentStep } = get();
+        if (!currentScene) return;
+
+        // Save completed conversation to history
+        set(state => ({
+          history: [...state.history, currentScene],
+          currentScene: null, // Clear current scene to force fetching new one
+          currentStep: 1,
+          conversationOutcome: null
+        }));
+
+        // Fetch new scene
+        await get().fetchNewScene();
+      },
+      
+      setLoading: (loading: boolean) => set({ loading }),
+      
+      resetGame: () => set({
         currentScene: null,
+        history: [],
         selectedChoice: null,
         showExplanation: false,
-        currentStep: 0,
-        conversationOutcome: 'pending',
-      })),
-      
-      setLoading: (loading) => set({ loading }),
-      
-      resetGame: () => set({ 
-        currentScene: null, 
-        history: [], 
-        selectedChoice: null, 
-        showExplanation: false, 
         score: 0,
-        currentStep: 0,
-        conversationOutcome: 'pending',
+        loading: false,
+        currentStep: 1,
+        conversationOutcome: null
       }),
       
-      setDifficulty: (difficulty) => set({ difficulty }),
+      setDifficulty: (difficulty: Difficulty) => set({ 
+        difficulty,
+        currentStep: 1,
+        conversationOutcome: null
+      }),
       
-      advanceStep: () => set((state) => ({ 
-        currentStep: state.currentStep + 1,
-        selectedChoice: null,
-        showExplanation: false,
-        currentScene: null, // Clear the current scene to force fetching a new one
-      })),
+      advanceStep: async () => {
+        const { currentScene, currentStep, difficulty, selectedChoice } = get();
+        if (!currentScene || !selectedChoice) return;
+
+        // Save the current step's choice and explanation
+        const stepHistory: StepHistory = {
+          choice: selectedChoice.text,
+          explanation: currentScene.explanation
+        };
+
+        const updatedScene = {
+          ...currentScene,
+          stepHistory: [...currentScene.stepHistory, stepHistory]
+        };
+
+        // Update current scene with accumulated history
+        set({ 
+          currentScene: updatedScene,
+          currentStep: currentStep + 1,
+          selectedChoice: null,
+          showExplanation: false
+        });
+
+        // Fetch new scene for the next step
+        await get().fetchNewScene();
+      },
       
       resetStep: () => set({ 
-        currentStep: 0,
-        conversationOutcome: 'pending',
+        currentStep: 1,
+        conversationOutcome: null
       }),
       
-      setConversationOutcome: (outcome) => set({ conversationOutcome: outcome }),
+      setConversationOutcome: (outcome: ConversationOutcome) => 
+        set({ conversationOutcome: outcome }),
+      
+      updateCurrentScene: (updates: Partial<GameScene>) => {
+        const { currentScene } = get();
+        if (!currentScene) return;
+
+        set({
+          currentScene: {
+            ...currentScene,
+            ...updates
+          }
+        });
+      },
+      
+      fetchNewScene: async () => {
+        const { difficulty, currentStep } = get();
+        set({ loading: true });
+
+        try {
+          const response = await fetch('/api/scene', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ difficulty, step: currentStep }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch scene');
+          }
+
+          const scene = await response.json();
+          set({ currentScene: scene, loading: false });
+        } catch (error) {
+          console.error('Error fetching scene:', error);
+          set({ loading: false });
+        }
+      }
     }),
     {
       name: 'kode-keras-game-storage',

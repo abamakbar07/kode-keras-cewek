@@ -1,3 +1,9 @@
+export enum Difficulty {
+  EASY = 'easy',
+  MEDIUM = 'medium',
+  HARD = 'hard'
+}
+
 export interface DialogLine {
   character: string;
   text: string;
@@ -5,21 +11,36 @@ export interface DialogLine {
 
 export interface Choice {
   text: string;
-  label: string;
   isCorrect: boolean;
 }
 
-export interface GameScene {
-  sceneTitle: string;
-  situation: string;
-  dialogue: DialogLine[];
-  choices: Choice[];
+export interface StepHistory {
+  choice: string;
   explanation: string;
 }
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export interface GameScene {
+  background: string;
+  dialog: DialogLine[];
+  choices: Choice[];
+  explanation: string;
+  conversationHistory: DialogLine[];
+  stepHistory: StepHistory[];
+}
 
-export interface DifficultyConfig {
+export interface GameState {
+  currentScene: GameScene | null;
+  history: GameScene[];
+  selectedChoice: Choice | null;
+  showExplanation: boolean;
+  score: number;
+  loading: boolean;
+  difficulty: Difficulty;
+  currentStep: number;
+  conversationOutcome: 'win' | 'lose' | null;
+}
+
+export type DifficultyConfig = {
   maxSteps: number;
   name: string;
   description: string;
