@@ -45,7 +45,7 @@ export default function GameSceneComponent({
   const isFinalStep = currentStep === maxSteps - 1;
 
   if (!scene) {
-    return <div className="text-center p-8">Loading scene...</div>;
+    return <div className="text-center p-8">Memuat adegan...</div>;
   }
 
   return (
@@ -54,7 +54,7 @@ export default function GameSceneComponent({
         <h2 className="text-2xl font-bold text-pink-600 dark:text-pink-400">{scene.sceneTitle}</h2>
         
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-500">Difficulty:</span>
+          <span className="text-xs text-gray-500">Kesulitan:</span>
           <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
             {DIFFICULTY_CONFIGS[difficulty].name}
           </span>
@@ -68,7 +68,7 @@ export default function GameSceneComponent({
             style={{ width: `${(currentStep + 1) / maxSteps * 100}%` }}
           ></div>
           <div className="text-xs text-gray-500 mt-1">
-            Step {currentStep + 1} of {maxSteps}
+            Langkah {currentStep + 1} dari {maxSteps}
           </div>
         </div>
       )}
@@ -95,7 +95,7 @@ export default function GameSceneComponent({
       {conversationOutcome === 'win' && (
         <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-lg">
           <p className="font-medium">🎉 Kamu Menang!</p>
-          <p className="text-sm">Kamu berhasil menyelesaikan conversation dengan baik.</p>
+          <p className="text-sm">Kamu berhasil menyelesaikan percakapan dengan baik.</p>
         </div>
       )}
       
@@ -157,7 +157,7 @@ export default function GameSceneComponent({
           onClick={onContinueConversation}
           className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
-          Lanjutkan Conversation
+          Lanjutkan Percakapan
         </button>
       )}
       
@@ -169,7 +169,7 @@ export default function GameSceneComponent({
           disabled={loading}
           className="w-full py-2 px-4 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Memuat Scene Baru...' : 'Scene Berikutnya'}
+          {loading ? 'Memuat Adegan Baru...' : 'Adegan Berikutnya'}
         </button>
       ) : null}
     </div>

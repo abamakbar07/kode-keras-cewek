@@ -54,7 +54,7 @@ export default function GamePage() {
       setCurrentScene(data as GameScene);
     } catch (err) {
       console.error('Error fetching scene:', err);
-      setError('Gagal memuat scene. Coba lagi nanti atau periksa konfigurasi API.');
+      setError('Gagal memuat adegan. Coba lagi nanti atau periksa konfigurasi API.');
     } finally {
       setLoading(false);
     }
@@ -86,6 +86,17 @@ export default function GamePage() {
     fetchNewScene();
   };
 
+  // Handle selecting a choice by label
+  const handleSelectChoice = (label: string) => {
+    if (!currentScene) return;
+    
+    // Find the choice with the matching label
+    const choice = currentScene.choices.find(c => c.label === label);
+    if (choice) {
+      selectChoice(choice);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-purple-100 dark:from-gray-900 dark:to-purple-950 p-6">
       <div className="max-w-4xl mx-auto">
@@ -94,7 +105,7 @@ export default function GamePage() {
             href="/"
             className="text-pink-600 dark:text-pink-400 hover:underline font-medium"
           >
-            ← Kembali ke Home
+            ← Kembali ke Beranda
           </Link>
           
           <div className="flex items-center gap-4">
@@ -106,7 +117,7 @@ export default function GamePage() {
             </button>
             
             <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow">
-              <span className="font-medium">Score: {score}</span>
+              <span className="font-medium">Skor: {score}</span>
             </div>
           </div>
         </div>
@@ -162,14 +173,14 @@ export default function GamePage() {
         ) : loading && !currentScene ? (
           <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
             <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-700 dark:text-gray-300">Memuat Scene...</p>
+            <p className="text-gray-700 dark:text-gray-300">Memuat Adegan...</p>
           </div>
         ) : currentScene ? (
           <GameSceneComponent
             scene={currentScene}
-            selectedChoice={selectedChoice}
+            selectedChoice={selectedChoice || null}
             showExplanation={showExplanation}
-            onSelectChoice={selectChoice}
+            onSelectChoice={handleSelectChoice}
             onShowExplanation={showSceneExplanation}
             onNextScene={handleNextScene}
             onContinueConversation={handleContinueConversation}

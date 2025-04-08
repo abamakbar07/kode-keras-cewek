@@ -38,27 +38,27 @@ export async function GET(request: Request) {
       history: [],
     });
 
-    const result = await chatSession.sendMessage(`You are a creative writer creating scenes for a visual novel game called "Kode Keras Cewek". 
-    The game is about a player trying to win the heart of a strong-willed woman through conversations.
+    const result = await chatSession.sendMessage(`Kamu adalah penulis kreatif yang membuat adegan untuk game visual novel bernama "Kode Keras Cewek". 
+    Game ini tentang seorang pemain yang berusaha memenangkan hati seorang wanita berkepribadian kuat melalui percakapan.
     ${difficultyContext}
     
-    Format your response as a JSON object with the following structure:
+    Format responsmu sebagai objek JSON dengan struktur berikut:
     {
-      "background": "A detailed description of the scene setting",
-      "sceneTitle": "Title for the scene",
+      "background": "Deskripsi detail tentang setting adegan",
+      "sceneTitle": "Judul untuk adegan",
       "dialog": [
         {
-          "character": "Character name",
-          "text": "What they say"
+          "character": "Nama karakter",
+          "text": "Apa yang mereka katakan"
         }
       ],
       "choices": [
         {
-          "text": "Player's response option",
+          "text": "Opsi respons pemain",
           "isCorrect": true/false
         }
       ],
-      "explanation": "Why this choice is correct/incorrect"
+      "explanation": "Kenapa pilihan ini benar/salah"
     }`);
     const candidates = result.response.candidates || [];
     if (candidates.length === 0) {
@@ -129,27 +129,27 @@ export async function POST(request: Request) {
       history: [],
     });
 
-    const result = await chatSession.sendMessage(`You are a creative writer creating scenes for a visual novel game called "Kode Keras Cewek". 
-    The game is about a player trying to win the heart of a strong-willed woman through conversations.
+    const result = await chatSession.sendMessage(`Kamu adalah penulis kreatif yang membuat adegan untuk game visual novel bernama "Kode Keras Cewek". 
+    Game ini tentang seorang pemain yang berusaha memenangkan hati seorang wanita berkepribadian kuat melalui percakapan.
     ${difficultyContext}
     
-    Format your response as a JSON object with the following structure:
+    Format responsmu sebagai objek JSON dengan struktur berikut:
     {
-      "background": "A detailed description of the scene setting",
-      "sceneTitle": "Title for the scene",
+      "background": "Deskripsi detail tentang setting adegan",
+      "sceneTitle": "Judul untuk adegan",
       "dialog": [
         {
-          "character": "Character name",
-          "text": "What they say"
+          "character": "Nama karakter",
+          "text": "Apa yang mereka katakan"
         }
       ],
       "choices": [
         {
-          "text": "Player's response option",
+          "text": "Opsi respons pemain",
           "isCorrect": true/false
         }
       ],
-      "explanation": "Why this choice is correct/incorrect"
+      "explanation": "Kenapa pilihan ini benar/salah"
     }`);
     const candidates = result.response.candidates || [];
     if (candidates.length === 0) {
@@ -201,28 +201,28 @@ export async function POST(request: Request) {
 function getDifficultyContext(difficulty: Difficulty, step: number): string {
   switch (difficulty) {
     case Difficulty.EASY:
-      return `Create a simple scene with one question and three clear answer choices.
-      The scene should be straightforward with obvious correct and incorrect responses.
-      The correct choice should be clearly the best option for winning the woman's heart.`;
+      return `Buat adegan sederhana dengan satu pertanyaan dan tiga pilihan jawaban yang jelas.
+      Adegan harus mudah dipahami dengan respons yang jelas benar dan salah.
+      Pilihan yang benar harus jelas merupakan opsi terbaik untuk memenangkan hati wanita tersebut.`;
     
     case Difficulty.MEDIUM:
-      return `Create a scene that is part of a three-step conversation (currently on step ${step}).
-      ${step === 1 ? 'Start the conversation with an interesting topic or situation.' :
-        step === 2 ? 'Continue the conversation, building on the previous interaction.' :
-        'Conclude the conversation with a meaningful choice.'}
-      The scene should have more nuanced choices where the correct response isn't immediately obvious.
-      Each choice should have subtle implications for the relationship.`;
+      return `Buat adegan yang merupakan bagian dari percakapan tiga langkah (saat ini pada langkah ${step}).
+      ${step === 1 ? 'Mulai percakapan dengan topik atau situasi yang menarik.' :
+        step === 2 ? 'Lanjutkan percakapan, bangun dari interaksi sebelumnya.' :
+        'Akhiri percakapan dengan pilihan yang bermakna.'}
+      Adegan harus memiliki pilihan yang lebih halus di mana respons yang benar tidak langsung terlihat jelas.
+      Setiap pilihan harus memiliki implikasi halus untuk hubungan mereka.`;
     
     case Difficulty.HARD:
-      return `Create a scene that is part of a five-step conversation (currently on step ${step}).
-      ${step === 1 ? 'Begin with an intriguing situation or topic.' :
-        step === 2 ? 'Develop the conversation with deeper implications.' :
-        step === 3 ? 'Add complexity to the situation.' :
-        step === 4 ? 'Build tension in the conversation.' :
-        'Conclude with a critical choice that determines the outcome.'}
-      The scene should have complex choices with multiple layers of meaning.
-      The correct choice should require understanding of subtle social cues and emotional intelligence.
-      Each choice should have significant implications for the relationship.`;
+      return `Buat adegan yang merupakan bagian dari percakapan lima langkah (saat ini pada langkah ${step}).
+      ${step === 1 ? 'Mulai dengan situasi atau topik yang menarik.' :
+        step === 2 ? 'Kembangkan percakapan dengan implikasi yang lebih dalam.' :
+        step === 3 ? 'Tambahkan kompleksitas pada situasi.' :
+        step === 4 ? 'Bangun ketegangan dalam percakapan.' :
+        'Akhiri dengan pilihan kritis yang menentukan hasil.'}
+      Adegan harus memiliki pilihan kompleks dengan beberapa lapisan makna.
+      Pilihan yang benar harus memerlukan pemahaman tentang isyarat sosial halus dan kecerdasan emosional.
+      Setiap pilihan harus memiliki implikasi signifikan untuk hubungan.`;
     
     default:
       return '';

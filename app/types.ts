@@ -51,17 +51,17 @@ export type DifficultyConfig = {
 export const DIFFICULTY_CONFIGS: Record<Difficulty, DifficultyConfig> = {
   easy: {
     maxSteps: 1,
-    name: 'Easy',
-    description: 'Satu pilihan jawaban per conversation'
+    name: 'Mudah',
+    description: 'Satu pilihan jawaban per percakapan'
   },
   medium: {
     maxSteps: 3,
-    name: 'Medium',
-    description: 'Tiga pilihan jawaban per conversation'
+    name: 'Sedang',
+    description: 'Tiga pilihan jawaban berturut-turut dalam satu percakapan'
   },
   hard: {
     maxSteps: 5,
-    name: 'Hard',
-    description: 'Lima atau lebih pilihan jawaban per conversation'
+    name: 'Sulit',
+    description: 'Lima pilihan jawaban berturut-turut dalam satu percakapan'
   }
 } 
