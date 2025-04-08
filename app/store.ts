@@ -101,7 +101,10 @@ export const useGameStore = create<GameStore>()(
           history: [...state.history, currentScene],
           currentScene: null, // Clear current scene to force fetching new one
           currentStep: 1,
-          conversationOutcome: null
+          conversationOutcome: null,
+          selectedChoice: null, // Clear selected choice
+          showExplanation: false, // Reset explanation state
+          loading: true // Set loading while fetching new scene
         }));
 
         // Fetch new scene
@@ -190,8 +193,9 @@ export const useGameStore = create<GameStore>()(
             body: JSON.stringify({ 
               difficulty, 
               step: currentStep,
-              conversationHistory: currentScene?.conversationHistory || [],
-              stepHistory: currentScene?.stepHistory || []
+              // Only include conversation history for Medium and Hard difficulties
+              conversationHistory: difficulty !== Difficulty.EASY ? (currentScene?.conversationHistory || []) : [],
+              stepHistory: difficulty !== Difficulty.EASY ? (currentScene?.stepHistory || []) : []
             }),
           });
 
@@ -200,7 +204,15 @@ export const useGameStore = create<GameStore>()(
           }
 
           const scene = await response.json();
-          set({ currentScene: scene, loading: false });
+          set({ 
+            currentScene: {
+              ...scene,
+              // Reset conversation history for Easy mode
+              conversationHistory: difficulty === Difficulty.EASY ? [] : scene.conversationHistory,
+              stepHistory: difficulty === Difficulty.EASY ? [] : scene.stepHistory
+            }, 
+            loading: false 
+          });
         } catch (error) {
           console.error('Error fetching scene:', error);
           set({ loading: false });
