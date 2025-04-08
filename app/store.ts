@@ -6,6 +6,7 @@ type ConversationOutcome = 'win' | 'lose' | null;
 
 interface GameState {
   currentScene: GameScene | null;
+  currentSceneId: string | null;
   history: GameScene[];
   selectedChoice: Choice | null;
   showExplanation: boolean;
@@ -14,6 +15,7 @@ interface GameState {
   difficulty: Difficulty;
   currentStep: number;
   conversationOutcome: ConversationOutcome;
+  selectedChoicesHistory: string[];
   
   setCurrentScene: (scene: GameScene) => void;
   selectChoice: (choice: Choice) => void;
@@ -51,6 +53,7 @@ export const useGameStore = create<GameStore>()(
   persist(
     (set, get) => ({
       currentScene: null,
+      currentSceneId: null,
       history: [],
       selectedChoice: null,
       showExplanation: false,
@@ -59,14 +62,22 @@ export const useGameStore = create<GameStore>()(
       difficulty: Difficulty.EASY,
       currentStep: 1,
       conversationOutcome: null,
+      selectedChoicesHistory: [],
       
-      setCurrentScene: (scene: GameScene) => set({ currentScene: scene }),
+      setCurrentScene: (scene: GameScene) => set({ 
+        currentScene: scene,
+        currentSceneId: scene.id 
+      }),
       
       selectChoice: async (choice: Choice) => {
         const { currentScene, difficulty, currentStep } = get();
         if (!currentScene) return;
 
-        set({ selectedChoice: choice, showExplanation: true });
+        set({ 
+          selectedChoice: choice, 
+          showExplanation: true,
+          selectedChoicesHistory: [...get().selectedChoicesHistory, choice.label || '']
+        });
 
         // Update score if choice is correct
         if (choice.isCorrect) {
@@ -93,18 +104,20 @@ export const useGameStore = create<GameStore>()(
       hideSceneExplanation: () => set({ showExplanation: false }),
       
       nextScene: async () => {
-        const { currentScene, history, difficulty, currentStep } = get();
-        if (!currentScene) return;
+        const { currentScene, history, difficulty, currentStep, selectedChoice } = get();
+        if (!currentScene || !selectedChoice) return;
 
         // Save completed conversation to history
         set(state => ({
           history: [...state.history, currentScene],
-          currentScene: null, // Clear current scene to force fetching new one
+          currentScene: null,
+          currentSceneId: null,
           currentStep: 1,
           conversationOutcome: null,
-          selectedChoice: null, // Clear selected choice
-          showExplanation: false, // Reset explanation state
-          loading: true // Set loading while fetching new scene
+          selectedChoice: null,
+          showExplanation: false,
+          loading: true,
+          selectedChoicesHistory: []
         }));
 
         // Fetch new scene
@@ -115,19 +128,22 @@ export const useGameStore = create<GameStore>()(
       
       resetGame: () => set({
         currentScene: null,
+        currentSceneId: null,
         history: [],
         selectedChoice: null,
         showExplanation: false,
         score: 0,
         loading: false,
         currentStep: 1,
-        conversationOutcome: null
+        conversationOutcome: null,
+        selectedChoicesHistory: []
       }),
       
       setDifficulty: (difficulty: Difficulty) => set({ 
         difficulty,
         currentStep: 1,
-        conversationOutcome: null
+        conversationOutcome: null,
+        selectedChoicesHistory: []
       }),
       
       advanceStep: async () => {
@@ -137,14 +153,13 @@ export const useGameStore = create<GameStore>()(
         // Save the current step's choice and explanation
         const stepHistory: StepHistory = {
           choice: selectedChoice.text,
-          explanation: currentScene.explanation
+          explanation: currentScene.explanation,
+          nextSceneId: selectedChoice.nextSceneId
         };
 
         const updatedScene = {
           ...currentScene,
-          // Update conversation history with the current dialog
           conversationHistory: [...currentScene.conversationHistory, ...currentScene.dialog],
-          // Update step history with the current choice and explanation
           stepHistory: [...currentScene.stepHistory, stepHistory]
         };
 
@@ -153,16 +168,20 @@ export const useGameStore = create<GameStore>()(
           currentScene: updatedScene,
           currentStep: currentStep + 1,
           selectedChoice: null,
-          showExplanation: false
+          showExplanation: false,
+          currentSceneId: selectedChoice.nextSceneId || null
         });
 
-        // Fetch new scene for the next step
-        await get().fetchNewScene();
+        // If we have a next scene ID, fetch that specific scene
+        if (selectedChoice.nextSceneId) {
+          await get().fetchNewScene();
+        }
       },
       
       resetStep: () => set({ 
         currentStep: 1,
-        conversationOutcome: null
+        conversationOutcome: null,
+        selectedChoicesHistory: []
       }),
       
       setConversationOutcome: (outcome: ConversationOutcome) => 
@@ -181,7 +200,7 @@ export const useGameStore = create<GameStore>()(
       },
       
       fetchNewScene: async () => {
-        const { difficulty, currentStep, currentScene } = get();
+        const { difficulty, currentStep, currentScene, currentSceneId, selectedChoicesHistory } = get();
         set({ loading: true });
 
         try {
@@ -193,7 +212,8 @@ export const useGameStore = create<GameStore>()(
             body: JSON.stringify({ 
               difficulty, 
               step: currentStep,
-              // Only include conversation history for Medium and Hard difficulties
+              currentSceneId,
+              selectedChoicesHistory,
               conversationHistory: difficulty !== Difficulty.EASY ? (currentScene?.conversationHistory || []) : [],
               stepHistory: difficulty !== Difficulty.EASY ? (currentScene?.stepHistory || []) : []
             }),
@@ -207,10 +227,10 @@ export const useGameStore = create<GameStore>()(
           set({ 
             currentScene: {
               ...scene,
-              // Reset conversation history for Easy mode
               conversationHistory: difficulty === Difficulty.EASY ? [] : scene.conversationHistory,
               stepHistory: difficulty === Difficulty.EASY ? [] : scene.stepHistory
-            }, 
+            },
+            currentSceneId: scene.id,
             loading: false 
           });
         } catch (error) {

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useGameStore } from '../store';
 import GameSceneComponent from '../components/GameScene';
-import { GameScene, Difficulty, DIFFICULTY_CONFIGS } from '../types';
+import { GameScene, Difficulty, DIFFICULTY_CONFIGS, Choice } from '../types';
 
 export default function GamePage() {
   const { 
@@ -23,7 +23,8 @@ export default function GamePage() {
     setLoading,
     setDifficulty,
     advanceStep,
-    resetStep
+    resetStep,
+    fetchNewScene: fetchNewSceneFromStore
   } = useGameStore();
   
   const [error, setError] = useState<string | null>(null);
@@ -35,23 +36,8 @@ export default function GamePage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/scene', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          difficulty: difficulty,
-          step: currentStep
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch scene');
-      }
-      
-      const data = await response.json();
-      setCurrentScene(data as GameScene);
+      // Use the store's fetchNewScene function which handles all the context
+      await fetchNewSceneFromStore();
     } catch (err) {
       console.error('Error fetching scene:', err);
       setError('Gagal memuat adegan. Coba lagi nanti atau periksa konfigurasi API.');
@@ -77,13 +63,11 @@ export default function GamePage() {
   // Handle next scene button
   const handleNextScene = () => {
     nextScene();
-    fetchNewScene();
   };
 
   // Handle continue conversation button (for medium and hard difficulties)
   const handleContinueConversation = () => {
     advanceStep();
-    fetchNewScene();
   };
 
   // Handle selecting a choice by label
@@ -178,7 +162,7 @@ export default function GamePage() {
         ) : currentScene ? (
           <GameSceneComponent
             scene={currentScene}
-            selectedChoice={selectedChoice || null}
+            selectedChoice={selectedChoice?.label || null}
             showExplanation={showExplanation}
             onSelectChoice={handleSelectChoice}
             onShowExplanation={showSceneExplanation}

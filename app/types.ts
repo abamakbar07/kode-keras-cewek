@@ -13,14 +13,17 @@ export interface Choice {
   text: string;
   isCorrect: boolean;
   label?: string;
+  nextSceneId?: string;
 }
 
 export interface StepHistory {
   choice: string;
   explanation: string;
+  nextSceneId?: string;
 }
 
 export interface GameScene {
+  id: string;
   background: string;
   sceneTitle?: string;
   dialog: DialogLine[];
@@ -28,10 +31,12 @@ export interface GameScene {
   explanation: string;
   conversationHistory: DialogLine[];
   stepHistory: StepHistory[];
+  outcome?: 'win' | 'lose' | null;
 }
 
 export interface GameState {
   currentScene: GameScene | null;
+  currentSceneId: string | null;
   history: GameScene[];
   selectedChoice: Choice | null;
   showExplanation: boolean;
@@ -40,6 +45,7 @@ export interface GameState {
   difficulty: Difficulty;
   currentStep: number;
   conversationOutcome: 'win' | 'lose' | null;
+  selectedChoicesHistory: string[];
 }
 
 export type DifficultyConfig = {

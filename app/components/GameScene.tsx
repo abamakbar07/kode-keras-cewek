@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameScene, Choice, Difficulty, DIFFICULTY_CONFIGS, StepHistory } from '../types';
+import { GameScene, Choice, Difficulty, DIFFICULTY_CONFIGS, StepHistory, DialogLine } from '../types';
 
 interface GameSceneProps {
   scene: GameScene;
@@ -50,7 +50,7 @@ export default function GameSceneComponent({
 
   // Function to render previous conversation steps
   const renderPreviousSteps = () => {
-    if (difficulty === Difficulty.EASY || scene.stepHistory.length === 0) {
+    if (difficulty === Difficulty.EASY || scene.conversationHistory.length === 0) {
       return null;
     }
 
@@ -58,8 +58,27 @@ export default function GameSceneComponent({
       <div className="mb-6 border-b pb-4 border-gray-200 dark:border-gray-700">
         <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-300">Percakapan Sebelumnya:</h3>
         
+        {/* Display previous conversation history */}
+        <div className="space-y-4 mb-4">
+          {scene.conversationHistory.map((dialog: DialogLine, index: number) => (
+            <div key={`prev-dialog-${index}`} className={`flex ${dialog.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
+              <div 
+                className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                  dialog.character === 'Cewek' 
+                    ? 'bg-pink-100 dark:bg-pink-900 text-gray-800 dark:text-gray-200' 
+                    : 'bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200'
+                }`}
+              >
+                <p className="font-semibold text-xs">{dialog.character}</p>
+                <p>{dialog.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Display previous choices and explanations */}
         {scene.stepHistory.map((step: StepHistory, stepIndex: number) => (
-          <div key={stepIndex} className="mb-4">
+          <div key={`prev-step-${stepIndex}`} className="mb-4">
             <div className="flex flex-col space-y-2 mb-2">
               <div className="bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200 rounded-lg px-4 py-2 self-end max-w-[80%]">
                 <p className="font-semibold text-xs">Kamu</p>
@@ -111,7 +130,7 @@ export default function GameSceneComponent({
       
       {/* Current conversation */}
       <div className="space-y-4 mb-6">
-        <h3 className={`font-medium mb-2 text-gray-700 dark:text-gray-300 ${difficulty !== 'easy' && scene.stepHistory.length > 0 ? 'block' : 'hidden'}`}>
+        <h3 className={`font-medium mb-2 text-gray-700 dark:text-gray-300 ${difficulty !== 'easy' && scene.conversationHistory.length > 0 ? 'block' : 'hidden'}`}>
           Percakapan Saat Ini:
         </h3>
         {scene.dialog.map((dialog, index) => (
