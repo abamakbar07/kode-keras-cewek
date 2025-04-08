@@ -65,21 +65,34 @@ export async function GET(request: Request) {
       throw new Error('No response from Google Generative AI');
     }
 
-    const response = candidates[0].content.parts
-      .map(part => part.inlineData ? JSON.parse(Buffer.from(part.inlineData.data, 'base64').toString()) : null)
-      .filter(Boolean)[0] || {};
+    // Get the text content from the response
+    const textContent = candidates[0].content.parts[0].text || '{}';
+    
+    // Clean up the response by removing markdown code blocks if present
+    const cleanedContent = textContent
+      .replace(/^```json\s*/, '') // Remove leading ```json
+      .replace(/```\s*$/, '');    // Remove trailing ```
+    
+    // Try to parse the text as JSON
+    let responseData: Partial<GameScene> = {};
+    try {
+      responseData = JSON.parse(cleanedContent);
+    } catch (err) {
+      console.error('Failed to parse response as JSON:', err);
+      console.log('Raw response:', textContent);
+    }
     
     // Parse the response and ensure it matches our GameScene type
     const scene: GameScene = {
-      background: response.background || "A cozy cafe with soft music playing in the background.",
-      sceneTitle: response.sceneTitle || "Scene",
-      dialog: response.dialog || [],
+      background: responseData.background || "A cozy cafe with soft music playing in the background.",
+      sceneTitle: responseData.sceneTitle || "Scene",
+      dialog: responseData.dialog || [],
       // Add labels (A, B, C) to choices
-      choices: (response.choices || []).map((choice: any, index: number) => ({
+      choices: (responseData.choices || []).map((choice: any, index: number) => ({
         ...choice,
         label: String.fromCharCode(65 + index) // A, B, C, etc.
       })),
-      explanation: response.explanation || "",
+      explanation: responseData.explanation || "",
       conversationHistory: [],
       stepHistory: []
     };
@@ -143,21 +156,34 @@ export async function POST(request: Request) {
       throw new Error('No response from Google Generative AI');
     }
 
-    const response = candidates[0].content.parts
-      .map(part => part.inlineData ? JSON.parse(Buffer.from(part.inlineData.data, 'base64').toString()) : null)
-      .filter(Boolean)[0] || {};
+    // Get the text content from the response
+    const textContent = candidates[0].content.parts[0].text || '{}';
+    
+    // Clean up the response by removing markdown code blocks if present
+    const cleanedContent = textContent
+      .replace(/^```json\s*/, '') // Remove leading ```json
+      .replace(/```\s*$/, '');    // Remove trailing ```
+    
+    // Try to parse the text as JSON
+    let responseData: Partial<GameScene> = {};
+    try {
+      responseData = JSON.parse(cleanedContent);
+    } catch (err) {
+      console.error('Failed to parse response as JSON:', err);
+      console.log('Raw response:', textContent);
+    }
     
     // Parse the response and ensure it matches our GameScene type
     const scene: GameScene = {
-      background: response.background || "A cozy cafe with soft music playing in the background.",
-      sceneTitle: response.sceneTitle || "Scene",
-      dialog: response.dialog || [],
+      background: responseData.background || "A cozy cafe with soft music playing in the background.",
+      sceneTitle: responseData.sceneTitle || "Scene",
+      dialog: responseData.dialog || [],
       // Add labels (A, B, C) to choices
-      choices: (response.choices || []).map((choice: any, index: number) => ({
+      choices: (responseData.choices || []).map((choice: any, index: number) => ({
         ...choice,
         label: String.fromCharCode(65 + index) // A, B, C, etc.
       })),
-      explanation: response.explanation || "",
+      explanation: responseData.explanation || "",
       conversationHistory: [],
       stepHistory: []
     };

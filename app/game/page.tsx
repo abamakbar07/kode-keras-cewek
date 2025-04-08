@@ -35,7 +35,16 @@ export default function GamePage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/scene?difficulty=${difficulty}&step=${currentStep}`);
+      const response = await fetch('/api/scene', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          difficulty: difficulty,
+          step: currentStep
+        }),
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch scene');
