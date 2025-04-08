@@ -167,7 +167,7 @@ export default function GamePage() {
             loading={loading}
             difficulty={difficulty}
             currentStep={currentStep}
-            conversationOutcome={conversationOutcome}
+            conversationOutcome={conversationOutcome || "pending"} // Default to "pending" if null
           />
         ) : null}
       </div>

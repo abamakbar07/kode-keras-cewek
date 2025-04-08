@@ -12,6 +12,7 @@ export interface DialogLine {
 export interface Choice {
   text: string;
   isCorrect: boolean;
+  label?: string;
 }
 
 export interface StepHistory {
@@ -21,6 +22,7 @@ export interface StepHistory {
 
 export interface GameScene {
   background: string;
+  sceneTitle?: string;
   dialog: DialogLine[];
   choices: Choice[];
   explanation: string;

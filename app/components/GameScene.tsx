@@ -73,10 +73,10 @@ export default function GameSceneComponent({
         </div>
       )}
       
-      <p className="text-gray-700 dark:text-gray-300 mb-6 italic">{scene.situation}</p>
+      <p className="text-gray-700 dark:text-gray-300 mb-6 italic">{scene.background}</p>
       
       <div className="space-y-4 mb-6">
-        {scene.dialogue.map((dialog, index) => (
+        {scene.dialog.map((dialog, index) => (
           <div key={index} className={`flex ${dialog.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
             <div 
               className={`rounded-lg px-4 py-2 max-w-[80%] ${
@@ -114,7 +114,7 @@ export default function GameSceneComponent({
             {scene.choices.map((choice) => (
               <button
                 key={choice.label}
-                onClick={() => onSelectChoice(choice.label)}
+                onClick={() => onSelectChoice(choice.label || '')}
                 disabled={selectedChoice !== null}
                 className={`w-full text-left p-3 rounded-lg border transition-colors ${
                   isChoiceCorrect(choice)

@@ -14,6 +14,86 @@ const generationConfig = {
   responseMimeType: "text/plain",
 };
 
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const difficulty = url.searchParams.get('difficulty') as Difficulty;
+    const step = parseInt(url.searchParams.get('step') || '1', 10);
+
+    // Validate difficulty
+    if (!Object.values(Difficulty).includes(difficulty)) {
+      return NextResponse.json(
+        { error: 'Invalid difficulty level' },
+        { status: 400 }
+      );
+    }
+
+    // Get difficulty-specific context
+    const difficultyContext = getDifficultyContext(difficulty, step);
+
+    const chatSession = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+    }).startChat({
+      generationConfig,
+      history: [],
+    });
+
+    const result = await chatSession.sendMessage(`You are a creative writer creating scenes for a visual novel game called "Kode Keras Cewek". 
+    The game is about a player trying to win the heart of a strong-willed woman through conversations.
+    ${difficultyContext}
+    
+    Format your response as a JSON object with the following structure:
+    {
+      "background": "A detailed description of the scene setting",
+      "sceneTitle": "Title for the scene",
+      "dialog": [
+        {
+          "character": "Character name",
+          "text": "What they say"
+        }
+      ],
+      "choices": [
+        {
+          "text": "Player's response option",
+          "isCorrect": true/false
+        }
+      ],
+      "explanation": "Why this choice is correct/incorrect"
+    }`);
+    const candidates = result.response.candidates || [];
+    if (candidates.length === 0) {
+      throw new Error('No response from Google Generative AI');
+    }
+
+    const response = candidates[0].content.parts
+      .map(part => part.inlineData ? JSON.parse(Buffer.from(part.inlineData.data, 'base64').toString()) : null)
+      .filter(Boolean)[0] || {};
+    
+    // Parse the response and ensure it matches our GameScene type
+    const scene: GameScene = {
+      background: response.background || "A cozy cafe with soft music playing in the background.",
+      sceneTitle: response.sceneTitle || "Scene",
+      dialog: response.dialog || [],
+      // Add labels (A, B, C) to choices
+      choices: (response.choices || []).map((choice: any, index: number) => ({
+        ...choice,
+        label: String.fromCharCode(65 + index) // A, B, C, etc.
+      })),
+      explanation: response.explanation || "",
+      conversationHistory: [],
+      stepHistory: []
+    };
+
+    return NextResponse.json(scene);
+  } catch (error) {
+    console.error('Error generating scene:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate scene' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { difficulty, step = 1 } = await request.json();
@@ -43,6 +123,7 @@ export async function POST(request: Request) {
     Format your response as a JSON object with the following structure:
     {
       "background": "A detailed description of the scene setting",
+      "sceneTitle": "Title for the scene",
       "dialog": [
         {
           "character": "Character name",
@@ -68,10 +149,15 @@ export async function POST(request: Request) {
     
     // Parse the response and ensure it matches our GameScene type
     const scene: GameScene = {
-      background: response.background,
-      dialog: response.dialog,
-      choices: response.choices,
-      explanation: response.explanation,
+      background: response.background || "A cozy cafe with soft music playing in the background.",
+      sceneTitle: response.sceneTitle || "Scene",
+      dialog: response.dialog || [],
+      // Add labels (A, B, C) to choices
+      choices: (response.choices || []).map((choice: any, index: number) => ({
+        ...choice,
+        label: String.fromCharCode(65 + index) // A, B, C, etc.
+      })),
+      explanation: response.explanation || "",
       conversationHistory: [],
       stepHistory: []
     };
