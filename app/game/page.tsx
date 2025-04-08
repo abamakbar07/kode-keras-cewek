@@ -77,7 +77,28 @@ export default function GamePage() {
     // Find the choice with the matching label
     const choice = currentScene.choices.find(c => c.label === label);
     if (choice) {
+      // Add the choice to conversation history
+      const updatedScene = {
+        ...currentScene,
+        conversationHistory: [
+          ...currentScene.conversationHistory,
+          {
+            type: 'choice' as const,
+            text: choice.text,
+            timestamp: Date.now(),
+            isCorrect: choice.isCorrect,
+            nextSceneId: choice.nextSceneId
+          },
+          {
+            type: 'explanation' as const,
+            text: currentScene.explanation,
+            timestamp: Date.now() + 1
+          }
+        ]
+      };
+      
       selectChoice(choice);
+      setCurrentScene(updatedScene);
     }
   };
 

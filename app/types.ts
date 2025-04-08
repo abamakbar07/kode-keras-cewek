@@ -25,13 +25,22 @@ export interface StepHistory {
 export interface GameScene {
   id: string;
   background: string;
-  sceneTitle?: string;
+  sceneTitle: string;
   dialog: DialogLine[];
   choices: Choice[];
   explanation: string;
-  conversationHistory: DialogLine[];
+  conversationHistory: ConversationEntry[];
   stepHistory: StepHistory[];
-  outcome?: 'win' | 'lose' | null;
+  outcome: 'win' | 'lose' | null;
+}
+
+export interface ConversationEntry {
+  type: 'dialog' | 'choice' | 'explanation';
+  character?: string;
+  text: string;
+  timestamp: number;
+  isCorrect?: boolean;
+  nextSceneId?: string;
 }
 
 export interface GameState {
@@ -57,17 +66,17 @@ export type DifficultyConfig = {
 export const DIFFICULTY_CONFIGS: Record<Difficulty, DifficultyConfig> = {
   easy: {
     maxSteps: 1,
-    name: 'Mudah',
+    name: 'easy',
     description: 'Satu pilihan jawaban per percakapan'
   },
   medium: {
     maxSteps: 3,
-    name: 'Sedang',
+    name: 'medium',
     description: 'Tiga pilihan jawaban berturut-turut dalam satu percakapan'
   },
   hard: {
     maxSteps: 5,
-    name: 'Sulit',
+    name: 'hard',
     description: 'Lima pilihan jawaban berturut-turut dalam satu percakapan'
   }
 } 

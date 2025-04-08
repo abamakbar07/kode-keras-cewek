@@ -56,40 +56,45 @@ export default function GameSceneComponent({
 
     return (
       <div className="mb-6 border-b pb-4 border-gray-200 dark:border-gray-700">
-        <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-300">Percakapan Sebelumnya:</h3>
+        {/* <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-300">Percakapan Sebelumnya:</h3> */}
         
         {/* Display previous conversation history */}
-        <div className="space-y-4 mb-4">
-          {scene.conversationHistory.map((dialog: DialogLine, index: number) => (
-            <div key={`prev-dialog-${index}`} className={`flex ${dialog.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
-              <div 
-                className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                  dialog.character === 'Cewek' 
-                    ? 'bg-pink-100 dark:bg-pink-900 text-gray-800 dark:text-gray-200' 
-                    : 'bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200'
-                }`}
-              >
-                <p className="font-semibold text-xs">{dialog.character}</p>
-                <p>{dialog.text}</p>
-              </div>
-            </div>
-          ))}
+        <div className="space-y-4 mb-4 ">
+          {scene.conversationHistory.map((entry, index) => {
+            if (entry.type === 'dialog') {
+              return (
+                <div key={`prev-dialog-${index}`} className={`flex ${entry.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
+                  <div 
+                    className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                      entry.character === 'Cewek' 
+                        ? 'bg-pink-100 dark:bg-pink-900 text-gray-800 dark:text-gray-200' 
+                        : 'bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200'
+                    }`}
+                  >
+                    <p className="font-semibold text-xs">{entry.character}</p>
+                    <p>{entry.text}</p>
+                  </div>
+                </div>
+              );
+            } else if (entry.type === 'choice') {
+              return (
+                <div key={`prev-choice-${index}`} className="flex justify-end">
+                  <div className="bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200 rounded-lg px-4 py-2 self-end max-w-[80%]">
+                    <p className="font-semibold text-xs">Kamu</p>
+                    <p>{entry.text}</p>
+                  </div>
+                </div>
+              );
+            } else if (entry.type === 'explanation') {
+              return (
+                <div key={`prev-explanation-${index}`} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{entry.text}</p>
+                </div>
+              );
+            }
+            return null;
+          })}
         </div>
-        
-        {/* Display previous choices and explanations */}
-        {scene.stepHistory.map((step: StepHistory, stepIndex: number) => (
-          <div key={`prev-step-${stepIndex}`} className="mb-4">
-            <div className="flex flex-col space-y-2 mb-2">
-              <div className="bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200 rounded-lg px-4 py-2 self-end max-w-[80%]">
-                <p className="font-semibold text-xs">Kamu</p>
-                <p>{step.choice}</p>
-              </div>
-            </div>
-            <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-4">
-              <p className="text-sm text-gray-700 dark:text-gray-300">{step.explanation}</p>
-            </div>
-          </div>
-        ))}
         
         <div className="flex justify-center my-2">
           <div className="border-l-2 border-dashed border-gray-300 dark:border-gray-600 h-8"></div>
@@ -129,25 +134,25 @@ export default function GameSceneComponent({
       {renderPreviousSteps()}
       
       {/* Current conversation */}
-      <div className="space-y-4 mb-6">
-        <h3 className={`font-medium mb-2 text-gray-700 dark:text-gray-300 ${difficulty !== 'easy' && scene.conversationHistory.length > 0 ? 'block' : 'hidden'}`}>
-          Percakapan Saat Ini:
-        </h3>
-        {scene.dialog.map((dialog, index) => (
-          <div key={index} className={`flex ${dialog.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
-            <div 
-              className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                dialog.character === 'Cewek' 
-                  ? 'bg-pink-100 dark:bg-pink-900 text-gray-800 dark:text-gray-200' 
-                  : 'bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200'
-              }`}
-            >
-              <p className="font-semibold text-xs">{dialog.character}</p>
-              <p>{dialog.text}</p>
+        <div className={`space-y-4 mb-6 ${difficulty !== 'easy' && scene.conversationHistory.length > 0 ? 'hidden' : 'block'}`}>
+          <h3 className={`font-medium mb-2 text-gray-700 dark:text-gray-300`}>
+            Percakapan Saat Ini:
+          </h3>
+          {scene.dialog.map((dialog, index) => (
+            <div key={index} className={`flex ${dialog.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
+              <div 
+                className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                  dialog.character === 'Cewek' 
+                    ? 'bg-pink-100 dark:bg-pink-900 text-gray-800 dark:text-gray-200' 
+                    : 'bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200'
+                }`}
+              >
+                <p className="font-semibold text-xs">{dialog.character}</p>
+                <p>{dialog.text}</p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       
       {conversationOutcome === 'win' && (
         <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-lg">

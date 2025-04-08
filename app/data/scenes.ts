@@ -22,7 +22,20 @@ export const scenes: Record<string, GameScene> = {
       }
     ],
     explanation: 'The beginning of your journey. Choose wisely as your decisions will shape your path.',
-    conversationHistory: [],
+    conversationHistory: [
+      {
+        type: 'dialog',
+        character: 'Narrator',
+        text: 'Welcome to the game!',
+        timestamp: Date.now()
+      },
+      {
+        type: 'dialog',
+        character: 'Narrator',
+        text: 'Your journey begins here...',
+        timestamp: Date.now() + 1
+      }
+    ],
     stepHistory: [],
     outcome: null
   },
@@ -47,7 +60,20 @@ export const scenes: Record<string, GameScene> = {
       }
     ],
     explanation: 'Your first challenge tests your judgment. The safe path may be longer but more reliable.',
-    conversationHistory: [],
+    conversationHistory: [
+      {
+        type: 'dialog',
+        character: 'Guide',
+        text: 'This is your first test.',
+        timestamp: Date.now()
+      },
+      {
+        type: 'dialog',
+        character: 'Guide',
+        text: 'Choose wisely!',
+        timestamp: Date.now() + 1
+      }
+    ],
     stepHistory: [],
     outcome: null
   },
@@ -72,7 +98,20 @@ export const scenes: Record<string, GameScene> = {
       }
     ],
     explanation: 'At the crossroads, your decision will lead you to different outcomes. Choose your path carefully.',
-    conversationHistory: [],
+    conversationHistory: [
+      {
+        type: 'dialog',
+        character: 'Guide',
+        text: 'The path splits ahead.',
+        timestamp: Date.now()
+      },
+      {
+        type: 'dialog',
+        character: 'Guide',
+        text: 'Your choice will determine your fate.',
+        timestamp: Date.now() + 1
+      }
+    ],
     stepHistory: [],
     outcome: null
   },
@@ -92,7 +131,20 @@ export const scenes: Record<string, GameScene> = {
       }
     ],
     explanation: 'You have completed your journey. Your choices have led you to this moment.',
-    conversationHistory: [],
+    conversationHistory: [
+      {
+        type: 'dialog',
+        character: 'Narrator',
+        text: 'You have reached the end of your journey.',
+        timestamp: Date.now()
+      },
+      {
+        type: 'dialog',
+        character: 'Narrator',
+        text: 'Thank you for playing!',
+        timestamp: Date.now() + 1
+      }
+    ],
     stepHistory: [],
     outcome: null
   }

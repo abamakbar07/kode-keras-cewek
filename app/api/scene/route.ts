@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GameScene, Difficulty } from '@/app/types';
+import { GameScene, Difficulty, DialogLine } from '@/app/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const apiKey = process.env.GOOGLE_AI_API_KEY || '';
@@ -124,7 +124,14 @@ Hasilkan scene dalam format JSON yang valid, tanpa komentar atau teks tambahan.`
       dialog: responseData.dialog || [],
       choices,
       explanation: responseData.explanation || "",
-      conversationHistory: [],
+      conversationHistory: [
+        ...(responseData.dialog || []).map((dialog: DialogLine, index: number) => ({
+          type: 'dialog' as const,
+          character: dialog.character,
+          text: dialog.text,
+          timestamp: Date.now() + index
+        }))
+      ],
       stepHistory: [],
       outcome: responseData.outcome || null
     };
@@ -274,8 +281,16 @@ Hasilkan scene dalam format JSON yang valid, tanpa komentar atau teks tambahan.`
       dialog: responseData.dialog || [],
       choices,
       explanation: responseData.explanation || "",
-      conversationHistory: conversationHistory,
-      stepHistory: stepHistory,
+      conversationHistory: [
+        ...(conversationHistory || []),
+        ...(responseData.dialog || []).map((dialog: DialogLine, index: number) => ({
+          type: 'dialog' as const,
+          character: dialog.character,
+          text: dialog.text,
+          timestamp: Date.now() + index
+        }))
+      ],
+      stepHistory: stepHistory || [],
       outcome: responseData.outcome || null
     };
 
