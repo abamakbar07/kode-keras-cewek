@@ -7,7 +7,7 @@ type ConversationOutcome = 'win' | 'lose' | null;
 interface GameState {
   currentScene: GameScene | null;
   history: GameScene[];
-  selectedChoice: string | null;
+  selectedChoice: Choice | null;
   showExplanation: boolean;
   score: number;
   loading: boolean;
@@ -139,6 +139,9 @@ export const useGameStore = create<GameStore>()(
 
         const updatedScene = {
           ...currentScene,
+          // Update conversation history with the current dialog
+          conversationHistory: [...currentScene.conversationHistory, ...currentScene.dialog],
+          // Update step history with the current choice and explanation
           stepHistory: [...currentScene.stepHistory, stepHistory]
         };
 
@@ -175,7 +178,7 @@ export const useGameStore = create<GameStore>()(
       },
       
       fetchNewScene: async () => {
-        const { difficulty, currentStep } = get();
+        const { difficulty, currentStep, currentScene } = get();
         set({ loading: true });
 
         try {
@@ -184,7 +187,12 @@ export const useGameStore = create<GameStore>()(
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ difficulty, step: currentStep }),
+            body: JSON.stringify({ 
+              difficulty, 
+              step: currentStep,
+              conversationHistory: currentScene?.conversationHistory || [],
+              stepHistory: currentScene?.stepHistory || []
+            }),
           });
 
           if (!response.ok) {

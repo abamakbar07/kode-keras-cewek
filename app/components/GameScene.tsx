@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameScene, Choice, Difficulty, DIFFICULTY_CONFIGS } from '../types';
+import { GameScene, Choice, Difficulty, DIFFICULTY_CONFIGS, StepHistory } from '../types';
 
 interface GameSceneProps {
   scene: GameScene;
@@ -48,6 +48,37 @@ export default function GameSceneComponent({
     return <div className="text-center p-8">Memuat adegan...</div>;
   }
 
+  // Function to render previous conversation steps
+  const renderPreviousSteps = () => {
+    if (difficulty === Difficulty.EASY || scene.stepHistory.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="mb-6 border-b pb-4 border-gray-200 dark:border-gray-700">
+        <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-300">Percakapan Sebelumnya:</h3>
+        
+        {scene.stepHistory.map((step: StepHistory, stepIndex: number) => (
+          <div key={stepIndex} className="mb-4">
+            <div className="flex flex-col space-y-2 mb-2">
+              <div className="bg-blue-100 dark:bg-blue-900 text-gray-800 dark:text-gray-200 rounded-lg px-4 py-2 self-end max-w-[80%]">
+                <p className="font-semibold text-xs">Kamu</p>
+                <p>{step.choice}</p>
+              </div>
+            </div>
+            <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-300">{step.explanation}</p>
+            </div>
+          </div>
+        ))}
+        
+        <div className="flex justify-center my-2">
+          <div className="border-l-2 border-dashed border-gray-300 dark:border-gray-600 h-8"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-2xl w-full">
       <div className="flex justify-between items-center mb-4">
@@ -75,7 +106,14 @@ export default function GameSceneComponent({
       
       <p className="text-gray-700 dark:text-gray-300 mb-6 italic">{scene.background}</p>
       
+      {/* Render previous conversation steps */}
+      {renderPreviousSteps()}
+      
+      {/* Current conversation */}
       <div className="space-y-4 mb-6">
+        <h3 className={`font-medium mb-2 text-gray-700 dark:text-gray-300 ${difficulty !== 'easy' && scene.stepHistory.length > 0 ? 'block' : 'hidden'}`}>
+          Percakapan Saat Ini:
+        </h3>
         {scene.dialog.map((dialog, index) => (
           <div key={index} className={`flex ${dialog.character === 'Cewek' ? 'justify-start' : 'justify-end'}`}>
             <div 
